@@ -1,0 +1,59 @@
+# Example Terraform Variables File
+# Copy this file to terraform.tfvars and customize the values
+
+# Basic Configuration
+aws_region   = "us-east-1"
+environment  = "dev"
+project_name = "translation-backend"
+
+# Network Configuration
+vpc_cidr = "10.0.0.0/16"
+public_subnet_cidrs = [
+  "10.0.1.0/24",
+  "10.0.2.0/24"
+]
+private_subnet_cidrs = [
+  "10.0.10.0/24",
+  "10.0.20.0/24"
+]
+
+# Database Configuration
+db_instance_class           = "db.r6g.large"
+db_allocated_storage        = 100
+db_max_allocated_storage    = 1000
+db_backup_retention_period  = 7
+db_multi_az                = true
+
+# Redis Configuration
+redis_node_type         = "cache.r6g.large"
+redis_num_cache_nodes   = 2
+redis_parameter_group_name = "default.redis7"
+
+# ECS Configuration
+ecs_cpu           = 2048
+ecs_memory        = 4096
+ecs_desired_count = 2
+ecs_min_capacity  = 1
+ecs_max_capacity  = 10
+
+# GPU Instance Configuration
+gpu_instance_type     = "g4dn.xlarge"
+gpu_min_size         = 0
+gpu_max_size         = 5
+gpu_desired_capacity = 1
+
+# Cost Optimization
+enable_spot_instances = true
+spot_price           = "0.50"
+
+# Monitoring Configuration
+enable_monitoring    = true
+log_retention_days   = 30
+
+# SSL Configuration (optional)
+domain_name      = ""  # Set to your domain name if you have one
+create_ssl_cert  = false
+
+# Backup Configuration
+backup_schedule       = "cron(0 2 * * ? *)"  # Daily at 2 AM UTC
+backup_retention_days = 30
