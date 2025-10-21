@@ -1,0 +1,84 @@
+# GPU Translation Engine Dockerfile
+FROM nvidia/cuda:11.8-devel-ubuntu20.04 as builder
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Upgrade pip and install PyTorch with CUDA support
+RUN pip install --upgrade pip
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# Install additional ML dependencies
+RUN pip install \
+    transformers[torch] \
+    accelerate \
+    bitsandbytes \
+    optimum \
+    sentencepiece \
+    sacremoses
+
+# Production stage
+FROM nvidia/cuda:11.8-runtime-ubuntu20.04 as production
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    CUDA_VISIBLE_DEVICES=0
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-distutils \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Create non-root user
+RUN groupadd -r gpuuser && useradd -r -g gpuuser gpuuser
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY src/ ./src/
+COPY models/ ./models/ 2>/dev/null || true
+
+# Create directories for models and cache
+RUN mkdir -p /app/models /app/cache && \
+    chown -R gpuuser:gpuuser /app
+
+USER gpuuser
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Run the GPU translation engine
+CMD ["python3", "-m", "src.services.translation_engine", "--port", "8080", "--gpu"]
