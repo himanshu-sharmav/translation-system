@@ -53,7 +53,7 @@ The system follows a microservices architecture with the following components:
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd machine-translation-backend
+cd translation-system
 ```
 
 2. Set up environment variables:
@@ -243,17 +243,3 @@ terraform apply
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the documentation at `/docs`
-- Review the troubleshooting guide
-
-## Roadmap
-
-- [ ] Support for additional language pairs
-- [ ] Advanced model optimization techniques
-- [ ] Real-time translation streaming
-- [ ] Multi-region deployment
-- [ ] Advanced cost optimization algorithms
